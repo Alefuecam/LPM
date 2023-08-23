@@ -1,0 +1,35 @@
+#define BOTON 2
+#define LED 15
+bool estadoBT;
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(BOTON,INPUT);
+  pinMode(BOTON,INPUT_PULLUP);
+  pinMode(BOTON,INPUT_PULLDOWN);
+  pinMode(LED ,OUTPUT);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  estadoBT = digitalRead(BOTON);
+  if (estadoBT==true){
+    Serial.println("presionado");
+    digitalWrite(LED,HIGH);
+  delay(125);//retraso, esta en msd
+  digitalWrite(LED,LOW);
+  delay(125);
+
+  }
+  else{
+    Serial.println("no presionado");
+    digitalWrite(LED,HIGH);
+  delay(1000);//retraso, esta en msd
+  digitalWrite(LED,LOW);
+  //delay(10000);
+
+     
+  }
+  
+}
