@@ -1,0 +1,42 @@
+#define tV 5
+#define tA 1
+#define tR 6
+#define LEDA1 22
+#define LEDR1 23
+#define LEDV1 21
+#define LEDA2 2
+#define LEDR2 15
+#define LEDV2 4
+void setup() {
+  pinMode(LEDR1,OUTPUT);//salida del LED rojo de semaforo 1
+  pinMode(LEDA1,OUTPUT);//salida de LED amarillo de semaforo 1
+  pinMode(LEDV1,OUTPUT);//salida de led verde de semaforo 1
+
+  pinMode(LEDR2,OUTPUT);//salida del LED rojo de semaforo 2
+  pinMode(LEDA2,OUTPUT);//salida de LED amarillo de semaforo 2
+  pinMode(LEDV2,OUTPUT);//salida de led verde de semaforo 2
+
+}
+
+void loop() {
+  
+  digitalWrite(LEDR1,HIGH);//prendo el rojo del semaforo 1
+  digitalWrite(LEDV2,HIGH);//prendo verde de semaforo 2
+  delay(tV*1000);//espero 5 segundos
+  digitalWrite(LEDV2,LOW);//apago verde del segundo sem despues de 5 segundos
+  digitalWrite(LEDA2,HIGH);//prendo amarillo del segundo sem
+  delay(tA*1000);//despues de esto van 6 segundos
+  digitalWrite(LEDR1,LOW);//apaho rojo de primer sem
+  digitalWrite(LEDA2,LOW);//apago amarillo de segundo sem
+  digitalWrite(LEDV1,HIGH);//prendo verde del primero
+  digitalWrite(LEDR2,HIGH);//prendo rojo del semaforo 2
+  delay(tV*1000);
+  digitalWrite(LEDV1,LOW);//apago verde del primero
+  digitalWrite(LEDA1,HIGH);//prendo amarillo del primero
+  delay(tA*1000);
+  digitalWrite(LEDA1,LOW);//Apago amarillo del primero
+  digitalWrite(LEDR2,LOW);//apago rojo del segundo
+
+  delay(2000);//espero 2 segundos para poder diferenciar entre ciclo
+
+}
