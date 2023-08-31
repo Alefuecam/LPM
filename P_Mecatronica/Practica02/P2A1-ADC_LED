@@ -1,0 +1,38 @@
+#define Pot 4//puerto analogico de entrada
+#define bits 4095
+#define volt 3.3
+#define LED 15//defino puerto de salida
+#define aux 22
+#define x 2 //voltaje threshold
+int valB;
+float valV;
+
+
+void setup() {
+  
+  Serial.begin(115200);
+  pinMode(LED, OUTPUT);//puerto como salida
+  digitalWrite(LED, LOW);
+}
+
+void loop() {
+  
+  
+  valB= analogRead(Pot);//leemos voltaje en bits
+  valV=(volt*valB)/bits;//convertimos bits a voltaje con regla de 3
+  Serial.print("ADC = ");
+  Serial.print(valB);
+  Serial.print("bits - ");
+  Serial.print("V = ")
+  Serial.print(valV);
+  Serial.println("volts");  
+  if(valV > x){//si el voltaje es mayor a 2
+    digitalWrite(LED,HIGH);//prendemos LED
+  
+  }
+  else{//Si voltaje es menor a 2 
+    digitalWrite(LED,LOW);//apagamos LED
+  }
+  
+  delay(100);//un retardo para poder ver diferencia 
+}
