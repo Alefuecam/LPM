@@ -1,0 +1,28 @@
+#include <Servo.h>//incluimos libreria del servo
+#define Pot 4//puerto 4 analogico 
+int angulo;
+static const int servoPin = 22;
+int valB;
+Servo servo1;
+
+void setup() {
+    Serial.begin(115200);
+    servo1.attach(servoPin);
+}
+
+void loop() {
+  valB= analogRead(Pot);//valB giarda valor deel potenciometro
+ 
+  angulo=map(valB,0,4095,180,0);//usamos fucnion map, que establece una relacion entre dso rangos, en este
+  //caso queremos una relacion positivia entre el servomotor y el potenciometro
+  
+  servo1.write(angulo);//le pedimos al servomotor que rote a cierto angulo dado por la variable "angulo" que depende del valor "valB"
+  Serial.print("ADC = ");
+  Serial.print(valB);
+  Serial.print("bits - ");
+  Serial.print("Angulo = ")
+  Serial.print(angulo);
+  Serial.println("grados");
+  delay(20);
+  
+}
