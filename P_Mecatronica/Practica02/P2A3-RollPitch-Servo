@@ -1,0 +1,67 @@
+#include <Servo.h>
+#define X 14 //eje x del acelerometro en pin 14, igual para T y Z
+#define Y 12
+#define Z 13
+# define pi 3.1416 // constante para pasar de radianes a grados o viceversa
+static const int servoPin = 22; //servo esta en pin 22
+Servo servo1;
+//defino algunas variables auxiliares 
+float valx,valy,valz;//representan valor en bits del acelerometro en un eje
+float acelX,acelY,acelZ,beta,alfa,roll;
+float angulo;
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);//baudios
+  servo1.attach(servoPin);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  valx=analogRead(X);//recibimos valores en bits
+  valy= analogRead(Y);
+  valz= analogRead(Z);
+  acelX=map(valx,1439,2268,-100,100);//pasamos valores de bits a -1,1 g's
+  acelY=map(valy,1359,2198,100,-100);
+  acelZ=map(valz,1424,2303,100,-100);//
+  acelX=acelX/100;
+  acelY=acelY/100;
+  acelZ=acelZ/100;
+  beta=atan(acelX/sqrt(acelY*acelY+acelZ*acelZ));//calculamos pitch
+  alfa=atan(acelY/sqrt(acelX*acelX+acelZ*acelZ));//calculamos roll
+  beta=beta*180/pi;//pasamos a angluo
+  alfa=alfa*180/pi;
+  /*Serial.print("Roll =");
+  Serial.print(alfa);
+  Serial.print("°");
+  Serial.print(" -- ");
+  Serial.print("Pitch = ");
+  Serial.print(beta);
+  Serial.println("°");*/
+  roll=alfa;
+  //dependiendio del valor del roll rotamos el servomotor
+  if(roll<-89){
+    servo1.write(0);
+  }
+  else if(roll<0 and roll>-90){
+    angulo=map(roll,-89,-1,1,44);
+    servo1.write(angulo);
+  }
+  else if(roll==0){
+    servo1.write(45);
+  }
+  else if(roll>0 and roll <90){
+    angulo=map(roll,1,89,45,89);
+    servo1.write(angulo);
+  }
+  else{
+    servo1.write(90);
+  }
+  Serial.print("X: ");//roll inclincion respectoa x. en pitch apunta a y postivo hacia abajo como salt bae negativo hacia arriba
+  Serial.print(acelX);
+  Serial.print(" Y: ");
+  Serial.print(acelY); //2395 (maximo) es equivalente a un g y el minimo 1535 -g, ahora haces escala der -1g a 1g y 1535 a 2395 
+  Serial.print(" Z: ");
+  Serial.println(acelZ);
+  delay(200);
+  
+}
