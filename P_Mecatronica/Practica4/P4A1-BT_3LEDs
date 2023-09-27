@@ -1,0 +1,62 @@
+#include "BluetoothSerial.h" //incluyo libreria que ya veine para esp32
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run 'make menuconfig' to and enable it
+#endif 
+#define LED1 23 //defino salidas para LEDs
+#define LED2 22
+#define LED3 21
+BluetoothSerial SerialBT; //defino Objeto del tipo BlutoothSerial que tenga las funcoonalidades de la libreria que inclui
+char dato;
+bool flag=true;//bandera para caracter 1
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  SerialBT.begin("Alex");//doy nombre a tarjeta
+  pinMode(LED1,OUTPUT);//defino leds como salidas
+  pinMode(LED2,OUTPUT);
+  pinMode(LED3,OUTPUT);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  if(Serial.available()){
+    
+      SerialBT.write(Serial.read());
+  }
+  if(SerialBT.available() ){//para leer del celular
+    dato=SerialBT.read();//leo caracter de celular
+    if(dato=='1' && flag){//si caracter es 1 por pirmera vez (y cada vez impar )
+      digitalWrite(LED1,HIGH);//prendo led1
+      Serial.println("Se prende LED1");//muestro en monitor de andruino
+      SerialBT.println("Se prende LED1");//muestro en disposivo BT
+      flag=false;//para no entrar de nuevo cuando se escriba '1' por segunda vez o vez par
+      dato=0;//para que no entre a siguiente if inmediatamente y pague luego luego
+    }
+    if( !flag && dato=='1'){//solo entro cuando se vuelve a insertar '1'
+      digitalWrite(LED1,LOW);//apago led 1 solamente
+      //Serial.println("Se prende LED1");
+      //SerialBT.println("Se prende LED1");
+      flag=true;
+    }
+    if(dato=='2'){//prendo led 2 si el caracter es 2, nada mas
+      digitalWrite(LED2,HIGH);
+      Serial.println("Se prende led2");
+      SerialBT.println("Se prende led2");
+    }
+    if(dato=='3'){//prendo led 3 si caracter es 3 nada mas
+      digitalWrite(LED3,HIGH);
+      Serial.println("Se prende led3");
+      SerialBT.println("Se prende led3");
+    }
+    if(dato=='4'){//si caracter es 4 apago todo
+      digitalWrite(LED1,LOW);
+      digitalWrite(LED2,LOW);
+      digitalWrite(LED3,LOW);
+      Serial.println("apago");
+      SerialBT.println("apago");
+    }
+    //Serial.write(SerialBT.read());
+  }
+  delay(20);
+}
