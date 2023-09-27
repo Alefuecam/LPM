@@ -1,0 +1,38 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>//incorporamos librria necesario
+LiquidCrystal_I2C lcd(0x27,16,2);//columnas y filas, 0 a 15 y 0 a 1, establezco lcd
+int a=1;//esta variable la voy a usar como bandera
+
+void setup() {
+  // put your setup code here, to run once:
+  lcd.init();//inicilizo lcd
+  lcd.init();
+  lcd.backlight();//pa prender
+  //lcd.noBlacklight(); pa n prender
+  
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  //solo quiero entrar una vez ne el ciclo despues dejar mombres estaticos
+  if(a==1){
+  for(int i=15;i>=0;i--){//recorremos de izq a derecha
+    lcd.clear();
+    lcd.setCursor(i,0);//pa que se ubique en esquina superior izq
+    lcd.print("Alex");
+    lcd.setCursor(i,1);
+  lcd.print("nuria");
+    delay(700);//para alcanzar a ver recorriminto
+  }
+  a=2;//para no entrar de nuevo
+  }
+  
+  //lo suigiente se queda hasta el reinico tarjeta
+  lcd.setCursor(0,0);
+  lcd.print("Alex");
+  lcd.setCursor(0,1);
+  lcd.print("nuria");
+  
+  
+}
