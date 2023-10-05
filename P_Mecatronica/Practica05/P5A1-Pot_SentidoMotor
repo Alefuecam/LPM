@@ -1,0 +1,51 @@
+
+#define ENA 13
+#define In1 12//MA
+#define In2 14//MB
+#define Pot 27
+int val;
+float aux;
+void setup() {
+  // put your setup code here, to run once:
+  //13 es EN, 12 es in
+  Serial.begin(115200);
+  pinMode(In1,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(In2,OUTPUT);
+}
+
+void loop() {
+  //cuidsdo en erl cableado con terminales de llanta o gira al reves
+  // movimiento dextrogiro (sentido horario)
+  val=analogRead(Pot);
+  //aux=map(val,0,4095,0,3.3);
+  aux=val*3.3/4095;
+  if(aux>1.98){
+    digitalWrite(ENA,HIGH);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+  Serial.println("dextro");
+  Serial.println(aux);
+  delay(2000);
+  }
+  else if(aux> 1.32){
+   digitalWrite(ENA,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,LOW);
+  Serial.println("detenido");
+  Serial.println(aux);
+  delay(2000);
+  }
+  else{
+     digitalWrite(ENA,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+  Serial.println("levo");
+  Serial.println(aux);
+  delay(2000);
+  }
+  
+  
+  //para apagar apago enable o apago dos (como es puente H si apago las dos es cerrar las 4 casillas y no se moveria )
+ 
+}
