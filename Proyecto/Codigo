@@ -1,0 +1,241 @@
+#include "BluetoothSerial.h"
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run 'make menuconfig' to and enable it
+#endif 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>//incorporamos librria necesario
+LiquidCrystal_I2C lcd(0x27,16,2);//columnas y filas, 0 a 15 y 0 a 1, establezco lcd
+
+#define ENA1 14
+#define ENA2 32 //enable de llanta izquierda
+#define In1 33//MA
+#define In2 25//MB
+#define In11 26//MA
+#define In22 27//MB
+#define trigPin 13
+#define echoPin 12
+#define LDRD 35//der
+#define LDRI 34//izq
+#define Obs1 19//sensores de obstaculos
+#define Obs2 18
+#define Obs3 5 //este no esta detectando
+#define Obs4 17
+//#19,18,5,tx2
+int channel=0;
+int frec = 1000;//resolucion y freuencia son parametros para crear PMW 
+int resolution=8;//indica rango de trabajo,son bits de res, si uso 12 no tendira que hacer map en teoria
+BluetoothSerial SerialBT;
+char dato;
+int a=1;
+int dist;
+float auxI,auxD,auxO1,auxO2,auxO3;
+void setup() {
+  // put your setup code here, to run once:
+  //13 es EN, 12 es in
+  Serial.begin(115200);
+  pinMode(In1,OUTPUT);
+  pinMode(ENA1,OUTPUT);
+  pinMode(In2,OUTPUT);
+
+  pinMode(In11,OUTPUT);
+  pinMode(ENA2,OUTPUT);
+  pinMode(In22,OUTPUT);
+
+  SerialBT.begin("Alex");
+
+  lcd.init();//inicilizo lcd
+  lcd.init();
+  lcd.backlight();//pa prender
+
+  pinMode(trigPin,OUTPUT);
+  pinMode(echoPin,INPUT);
+
+  pinMode(LDRI,INPUT);
+  pinMode(LDRD,INPUT);
+
+  pinMode(Obs1,INPUT);
+  pinMode(Obs2,INPUT);
+  pinMode(Obs3,INPUT);
+  pinMode(Obs4,INPUT);
+  //ledcSetup(channel,frec,resolution);
+  //ledcAttachPin(led,channel);//GPIO que muestra senal y el channel genera la senal
+}
+
+void loop() {
+  //para probar obstaculos
+ /* if(digitalRead(Obs1) == LOW){
+    lcd.setCursor(0,0);
+    lcd.print("uno detetecta");
+  }
+  else if(digitalRead(Obs2)==LOW){
+    lcd.setCursor(0,0);
+    lcd.print("dos detetecta");
+  }
+  else if(digitalRead(Obs4) == LOW){
+    lcd.setCursor(0,0);
+    lcd.print("cuatro detetecta");
+  }*/
+ /*if(digitalRead(Obs3) == LOW){
+   lcd.setCursor(0,0);
+    lcd.print("tres detetecta");
+  }*/
+  /*else{
+  lcd.setCursor(0,0);
+    lcd.print("NO detetecta");
+  }*/
+  //este para robar los LDR
+  auxI=analogRead(LDRI);
+  auxD=analogRead(LDRD);
+  lcd.setCursor(0,0);
+  lcd.print(auxI);
+  lcd.setCursor(0,1);
+  lcd.print(auxD);
+
+  //este para probar ultrasonico
+  /*dist=Ultrasonico();
+  if(dist<20){
+    lcd.setCursor(0,1);
+    lcd.print("Dist menor 20");
+    //lcd.setCursor(0,1);
+    //lcd.print("a 20");
+  }
+  else{
+    lcd.setCursor(0,1);
+      lcd.print("dist mayor 20");
+     //lcd.setCursor(0,1);
+   // lcd.print("a 20");*/
+ 
+  //}
+  
+  
+  
+  
+  //para probar direcciones
+  /*if(Serial.available()){
+    
+      SerialBT.write(Serial.read());
+  }
+  if(SerialBT.available() ){
+    dato=SerialBT.read();
+    if(dato=='1'){// && flag){
+      adelante();
+      lcd.setCursor(0,0);
+      lcd.print("adelante");
+      //flag=false;
+      dato=0;
+    }
+    if(dato=='2'){
+      atras();
+      lcd.setCursor(0,0);
+      lcd.print("atras");
+    }
+    if(dato=='3'){
+      derecha();
+      lcd.setCursor(0,0);
+      lcd.print("derecha");
+    }
+    if(dato=='4'){
+      izquierda();
+      lcd.setCursor(0,0);
+      lcd.print("izquierda");
+    }
+    if(dato=='5'){
+      detenido();
+      lcd.setCursor(0,0);
+      lcd.print("detenido");
+    }
+  }*/
+  
+}
+void mensajeLCD(char mensaje){
+  lcd.setCursor(0,0);
+  lcd.print(mensaje  );
+}
+void atras(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void adelante(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void derecha(){
+  digitalWrite(ENA1,LOW);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void izquierda(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,LOW);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void detenido(){
+  digitalWrite(ENA1,LOW);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,LOW);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void derPropioEje(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ 
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  
+}
+void izqPropioEje(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ 
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  
+}
+int Ultrasonico(){
+  int t,d;
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin,HIGH);//asegurar que esta apagado
+  delayMicroseconds(10);
+  digitalWrite(trigPin,LOW);
+
+  t=pulseIn(echoPin,HIGH);
+  d=0.0343*t*0.5;//usando velocidad y tiempo calculamos distancia
+  
+  return d;
+}
