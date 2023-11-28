@@ -1,0 +1,209 @@
+/*Programa para robot que sigue luz y evade obstacuos
+ * Autor: Alejandro Fuentes
+ * Descripcion: Este programa es para un microcontrolador ESP32 devinkit V1
+ * Sirve para que un robot movil navegue en la oscuridad siguiendo laluz y evitando objetos
+ * Usa sesnores LDR, infrarojos y un sesnor ultrasonico.
+ * Los sesnores infrarojos son para evitar obstaculos, los LDR son para seguir la luz y el ultrasonico
+ * para detenerse. 
+*/
+#include "BluetoothSerial.h"
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run 'make menuconfig' to and enable it
+#endif 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>//incorporamos librria necesario
+LiquidCrystal_I2C lcd(0x27,16,2);//columnas y filas, 0 a 15 y 0 a 1, establezco lcd
+
+#define ENA1 14 //derecha
+#define ENA2 32 //enable de llanta izquierda
+#define In1 33//MA
+#define In2 25//MB
+#define In11 26//MA
+#define In22 27//MB
+#define trigPin 13 //para sesnor ultrasonico
+#define echoPin 12 //para sensor ultrasonico
+#define LDRD 35//der
+#define LDRI 34//izq
+#define Obs1 19//sensores de obstaculos
+#define Obs2 18
+#define Obs3 5 
+#define Obs4 17
+
+int channel=0; //canal para PWM
+int frec =255;//resolucion y freuencia son parametros para crear PMW 
+int resolution=8;//indica rango de trabajo,son bits de resolucion
+int channel1=1; //Otro canal para PWM
+BluetoothSerial SerialBT; //Para usar bluetooth de ser necesario
+char dato;
+int dist;//distancia que detectaultrasonico
+float auxI,auxD,auxO1,auxO2,auxO3;
+int pwmG=100;
+void setup() {
+  // Aqui delcaramos los puertos como entrada o salida
+  Serial.begin(115200);
+  pinMode(In1,OUTPUT);//Para motor derecho
+  pinMode(ENA1,OUTPUT);
+  pinMode(In2,OUTPUT);
+
+  pinMode(In11,OUTPUT);//Para motor izquierdo
+  pinMode(ENA2,OUTPUT);
+  pinMode(In22,OUTPUT);
+
+  SerialBT.begin("Alex"); //Para bluetooth
+
+  lcd.init();//inicilizo lcd
+  lcd.backlight();//para prender
+
+  pinMode(trigPin,OUTPUT);//Declaro pines del ultrasonico
+  pinMode(echoPin,INPUT);
+
+  pinMode(LDRI,INPUT);//Declaro sensores de luz
+  pinMode(LDRD,INPUT);
+
+  pinMode(Obs1,INPUT);//Declaro puertos donde van los infrarojos
+  pinMode(Obs2,INPUT);
+  pinMode(Obs3,INPUT);
+  pinMode(Obs4,INPUT);
+  ledcSetup(channel,frec,resolution); //Para poder modular voltaje
+  ledcAttachPin(ENA1,channel);//GPIO que muestra senal y el channel genera la senal
+  ledcSetup(channel1,frec,resolution);
+ ledcAttachPin(ENA2,channel1);
+ //un canal por motor
+}
+
+void loop() {
+    
+  lcd.clear();//limpio LCD
+  //leo valores de los LDR
+  auxI=analogRead(LDRI);
+  auxD=analogRead(LDRD);
+  //Muestro los valores en pantalla 
+  lcd.setCursor(0,0);
+  lcd.print(auxI);
+  lcd.setCursor(0,1);
+  lcd.print(auxD);
+  
+  dist=Ultrasonico(); //consigo distancia que detecta ultrasonico
+  
+    if(digitalRead(Obs2)==LOW){//si detecto algo a la izquierda lo evito
+        atras();
+        lcd.setCursor(8,0);
+        lcd.print("A");
+        delay(300);
+        lcd.setCursor(0,0);
+        lcd.print("der");
+        derPropioEje();
+        delay(300); 
+    }
+  else if(digitalRead(Obs3) == LOW){//s detecta algo a la derecha
+        atras();
+        lcd.setCursor(8,0);
+        lcd.print("B");
+        delay(300);
+        lcd.setCursor(0,0);
+        lcd.print("izq");
+        izqPropioEje();
+        delay(300);  
+         
+      }
+    else if(dist>25 && digitalRead(Obs3) == HIGH && digitalRead(Obs2) == HIGH){ //si no hay algo por enfrente o los lados
+          adelante();//avanzo
+         //190 es error entre LDR apuntando a mimsa fuente
+        if(auxI>auxD+190){ //Si hay mas luz por la izquierda
+          lcd.setCursor(8,0);
+          lcd.print("IZQUI");
+          izqPropioEje();
+        }
+        else if(auxI<auxD){// Si  hay mas luz de lado derecho
+          lcd.setCursor(8,0);
+          lcd.print("DERECHA");
+          derPropioEje();
+        }
+        else{// Si luz es frontal
+          lcd.setCursor(8,0);
+          lcd.print("adelante");
+          lcd.setCursor(8,1);
+          lcd.print("d>20");
+          adelante();
+        }
+    
+      }
+      else if(dist<=25){ //en caso de que la distancia sea menor a 25 debo parar
+        
+        lcd.setCursor(8,0);
+        lcd.print("detenido");
+        lcd.setCursor(8,1);
+        lcd.print("d<20");
+        detenido();
+        
+      }
+      
+   
+}
+
+void atras(){
+  
+  ledcWrite(channel,177);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ 
+  ledcWrite(channel1,113);
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  
+}
+void adelante(){
+  ledcWrite(channel,177); //derecha
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ 
+  ledcWrite(channel1,113);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  
+}
+
+void detenido(){
+  ledcWrite(channel,0);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ 
+  ledcWrite(channel1,0);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+ ;
+}
+void derPropioEje(){//low high es ade
+ 
+ ledcWrite(channel,110);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+
+  ledcWrite(channel1,90); 
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  
+}
+void izqPropioEje(){
+  ledcWrite(channel,130);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ 
+  ledcWrite(channel1,90);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  
+}
+int Ultrasonico(){
+  int t,d;
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin,HIGH);//asegurar que esta apagado
+  delayMicroseconds(10);
+  digitalWrite(trigPin,LOW);
+
+  t=pulseIn(echoPin,HIGH);
+  d=0.0343*t*0.5;//usando velocidad y tiempo calculamos distancia
+  
+  return d;
+}
