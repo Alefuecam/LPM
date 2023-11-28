@@ -1,0 +1,195 @@
+#include "BluetoothSerial.h"
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run 'make menuconfig' to and enable it
+#endif 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>//incorporamos librria necesario
+LiquidCrystal_I2C lcd(0x27,16,2);//columnas y filas, 0 a 15 y 0 a 1, establezco lcd
+
+#define ENA1 14 //derecha
+#define ENA2 32 //enable de llanta izquierda
+#define In1 33//MA
+#define In2 25//MB
+#define In11 26//MA
+#define In22 27//MB
+#define trigPin 13
+#define echoPin 12
+int channel=0;
+int frec =255;//resolucion y freuencia son parametros para crear PMW 
+int resolution=8;//indica rango de trabajo,son bits de res, si uso 12 no tendira que hacer map en teoria
+int channel1=1;
+BluetoothSerial SerialBT;
+char dato;
+int dist;
+void setup() {
+  // put your setup code here, to run once:
+  //13 es EN, 12 es in
+  Serial.begin(115200);
+  pinMode(In1,OUTPUT);
+  pinMode(ENA1,OUTPUT);
+  pinMode(In2,OUTPUT);
+
+  pinMode(In11,OUTPUT);
+  pinMode(ENA2,OUTPUT);
+  pinMode(In22,OUTPUT);
+
+  SerialBT.begin("Alex");
+
+  lcd.init();//inicilizo lcd
+  lcd.init();
+  lcd.backlight();//pa prender
+
+  pinMode(trigPin,OUTPUT);
+  pinMode(echoPin,INPUT);
+
+
+  ledcSetup(channel,frec,resolution);
+  ledcAttachPin(ENA1,channel);//GPIO que muestra senal y el channel genera la senal
+  ledcSetup(channel1,frec,resolution);
+ ledcAttachPin(ENA2,channel1);
+}
+
+void loop() {
+  lcd.clear();
+  dist=Ultrasonico(); 
+  
+  //para probar direcciones
+  if(Serial.available()){
+    
+      SerialBT.write(Serial.read());
+  }
+  if(SerialBT.available() ){
+    dato=SerialBT.read();
+    if(dato=='1'){
+      adelante();
+      lcd.setCursor(0,0);
+      lcd.print("adelante");
+      
+      dato=0;
+    }
+    if(dato=='2'){
+      atras();
+      lcd.setCursor(0,0);
+      lcd.print("atras");
+    }
+    if(dato=='3'){
+      derPropioEje();
+      lcd.setCursor(0,0);
+      lcd.print("derecha");
+    }
+    if(dato=='4'){
+      izqPropioEje();
+      lcd.setCursor(0,0);
+      lcd.print("izquierda");
+    }
+    if(dato=='5'){
+      detenido();
+      lcd.setCursor(0,0);
+      lcd.print("detenido");
+    }
+    
+  }
+  
+}
+
+
+
+void atras(){
+  //analogWrite(ENA1,HIGH);
+  ledcWrite(channel,185);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ // Serial.println("detenido");
+  //analogWrite(ENA2,HIGH);
+  ledcWrite(channel1,120);
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  
+}
+void adelante(){
+  ledcWrite(channel,185); //derecha
+  //digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+    
+  //digitalWrite(ENA2,HIGH);//izauierda
+  ledcWrite(channel1,120);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void derecha(){
+  digitalWrite(ENA1,LOW);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");//baja a llanfa izquierda 
+  //delay(2000);
+}
+void izquierda(){
+  digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  digitalWrite(ENA2,LOW);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void detenido(){
+  //digitalWrite(ENA1,LOW);
+  ledcWrite(channel,0);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+ // Serial.println("detenido");
+  //digitalWrite(ENA2,LOW);
+  ledcWrite(channel1,0);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  //Serial.println("detenido");
+  //delay(2000);
+}
+void derPropioEje(){//low high es ade
+ // digitalWrite(ENA1,HIGH);
+ ledcWrite(channel,110);
+  digitalWrite(In1,LOW);
+  digitalWrite(In2,HIGH);
+
+  ledcWrite(channel1,90); 
+  //digitalWrite(ENA2,HIGH);
+  digitalWrite(In11,HIGH);
+  digitalWrite(In22,LOW);
+  
+}
+void izqPropioEje(){
+  ledcWrite(channel,110);
+  //digitalWrite(ENA1,HIGH);
+  digitalWrite(In1,HIGH);
+  digitalWrite(In2,LOW);
+ 
+ // digitalWrite(ENA2,HIGH);
+  ledcWrite(channel1,90);
+  digitalWrite(In11,LOW);
+  digitalWrite(In22,HIGH);
+  
+}
+
+int Ultrasonico(){
+  int t,d;
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin,HIGH);//asegurar que esta apagado
+  delayMicroseconds(10);
+  digitalWrite(trigPin,LOW);
+
+  t=pulseIn(echoPin,HIGH);
+  d=0.0343*t*0.5;//usando velocidad y tiempo calculamos distancia
+  
+  return d;
+}
