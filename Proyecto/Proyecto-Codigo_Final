@@ -84,26 +84,27 @@ void loop() {
   lcd.print(auxD);
   
   dist=Ultrasonico(); //consigo distancia que detecta ultrasonico
-  
+  //El uso de delay convendria, pero no los uso
+//usar millis sin ciclos (while) no resolvia problemas
     if(digitalRead(Obs2)==LOW){//si detecto algo a la izquierda lo evito
-        atras();
-        lcd.setCursor(8,0);
+        atras(); // robot retrocede para que cuando gire todo el cuerpo dell robot este despejado, esto importa porque un simple giro puede crear una colision con otras partes del robot (por ejemplo las llantas)
+        lcd.setCursor(8,0);//muestro en LCD
         lcd.print("A");
-        delay(300);
+        
         lcd.setCursor(0,0);
         lcd.print("der");
-        derPropioEje();
-        delay(300); 
+        derPropioEje();//giro sobre ejo
+         
     }
   else if(digitalRead(Obs3) == LOW){//s detecta algo a la derecha
         atras();
         lcd.setCursor(8,0);
         lcd.print("B");
-        delay(300);
+        
         lcd.setCursor(0,0);
         lcd.print("izq");
         izqPropioEje();
-        delay(300);  
+          
          
       }
     else if(dist>25 && digitalRead(Obs3) == HIGH && digitalRead(Obs2) == HIGH){ //si no hay algo por enfrente o los lados
@@ -111,7 +112,7 @@ void loop() {
          //190 es error entre LDR apuntando a mimsa fuente
         if(auxI>auxD+190){ //Si hay mas luz por la izquierda
           lcd.setCursor(8,0);
-          lcd.print("IZQUI");
+          lcd.print("IZQUI");//Giros inmediatos pues se presume que no hay obstaculos
           izqPropioEje();
         }
         else if(auxI<auxD){// Si  hay mas luz de lado derecho
@@ -119,7 +120,7 @@ void loop() {
           lcd.print("DERECHA");
           derPropioEje();
         }
-        else{// Si luz es frontal
+        else{// Si luz es frontal queremos ir recto
           lcd.setCursor(8,0);
           lcd.print("adelante");
           lcd.setCursor(8,1);
@@ -142,7 +143,7 @@ void loop() {
 }
 
 void atras(){
-  
+  //ajustes PWM de forma manual, usamos puente H
   ledcWrite(channel,177);
   digitalWrite(In1,HIGH);
   digitalWrite(In2,LOW);
@@ -195,7 +196,7 @@ void izqPropioEje(){
   
 }
 int Ultrasonico(){
-  int t,d;
+  int t,d; //tiempo y distancia
   digitalWrite(trigPin,LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin,HIGH);//asegurar que esta apagado
